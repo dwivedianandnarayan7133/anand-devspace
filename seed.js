@@ -1,99 +1,117 @@
-require('dotenv').config({ path: __dirname + '/.env' });
-const mongoose = require('mongoose');
+/**
+ * Seed Script — Populate default Social Links
+ *
+ * Run once to fill MongoDB with Anand's default social profiles.
+ * Safe to re-run — skips if docs already exist (upsert by platform).
+ *
+ * Usage:
+ *   node server/scripts/seed.js
+ */
 
-const Project = require('./server/models/Project');
-const Education = require('./server/models/Education');
-const Certification = require('./server/models/Certification');
+'use strict';
+
+require('dotenv').config();
+
+const mongoose   = require('mongoose');
+const connectDB  = require('../config/db');
+const SocialLink = require('../models/SocialLink');
+
+const DEFAULT_LINKS = [
+  {
+    platform:   'github',
+    label:      'GitHub',
+    url:        'https://github.com/',      // ← replace with real URL
+    username:   '@anandnarayan',
+    icon:       'fab fa-github',
+    colorClass: 'github',
+    order:      1,
+    isActive:   true,
+  },
+  {
+    platform:   'linkedin',
+    label:      'LinkedIn',
+    url:        'https://linkedin.com/',    // ← replace
+    username:   'Anand Narayan Dwivedi',
+    icon:       'fab fa-linkedin-in',
+    colorClass: 'linkedin',
+    order:      2,
+    isActive:   true,
+  },
+  {
+    platform:   'youtube',
+    label:      'YouTube',
+    url:        'https://youtube.com/',     // ← replace
+    username:   '@AnandDevChannel',
+    icon:       'fab fa-youtube',
+    colorClass: 'youtube',
+    order:      3,
+    isActive:   true,
+  },
+  {
+    platform:   'twitter',
+    label:      'Twitter / X',
+    url:        'https://twitter.com/',     // ← replace
+    username:   '@ananddev',
+    icon:       'fab fa-x-twitter',
+    colorClass: 'twitter',
+    order:      4,
+    isActive:   true,
+  },
+  {
+    platform:   'stackoverflow',
+    label:      'StackOverflow',
+    url:        'https://stackoverflow.com/', // ← replace
+    username:   'Anand N. Dwivedi',
+    icon:       'fab fa-stack-overflow',
+    colorClass: 'stackoverflow',
+    order:      5,
+    isActive:   true,
+  },
+  {
+    platform:   'discord',
+    label:      'Discord',
+    url:        'https://discord.com/',     // ← replace
+    username:   'anand#0001',
+    icon:       'fab fa-discord',
+    colorClass: 'discord',
+    order:      6,
+    isActive:   true,
+  },
+  {
+    platform:   'gmail',
+    label:      'Gmail',
+    url:        'mailto:dwivedianandnarayan@gmail.com',
+    username:   'dwivedianandnarayan@gmail.com',
+    icon:       'fab fa-google',
+    colorClass: 'gmail',
+    order:      7,
+    isActive:   true,
+  },
+];
 
 async function seed() {
-  try {
-    await mongoose.connect(process.env.MONGO_URI);
-    console.log('Connected to DB');
-    
-    await Project.deleteMany({});
-    await Project.create([
-      {
-        title: "Learning Management System",
-        description: "A comprehensive course management platform designed for educators and students. Features robust assignment tracking, teacher assessment tools, and a powerful admin dashboard for full oversight.",
-        features: ["Course management & enrollment system", "Assignment tracking & submission portal", "Teacher assessment & grading tools", "Admin dashboard with analytics"],
-        techStack: ["React", "Node.js", "MongoDB", "Express"],
-        icon: "fas fa-graduation-cap",
-        order: 1
-      },
-      {
-        title: "Language Translator with Speech",
-        description: "An intelligent language translation tool with integrated speech capabilities. Supports real-time translation with voice input and output, making language barriers a thing of the past.",
-        features: ["Real-time language translation", "Speech-to-text voice input", "Text-to-speech audio output", "Multiple language support"],
-        techStack: ["JavaScript", "Web Speech API", "Translation API", "HTML5"],
-        icon: "fas fa-language",
-        order: 2
-      }
-    ]);
-    console.log('Seeded Projects');
+  await connectDB();
 
-    await Education.deleteMany({});
-    await Education.create([
-      {
-        degree: "B.Tech Computer Science Engineering",
-        institution: "Bansal Institute of Engineering & Technology",
-        dateRange: "2024 - 2027",
-        location: "Lucknow, India",
-        description: "Pursuing Bachelor's degree in Computer Science with focus on full-stack development, algorithms, and software engineering principles.",
-        badgeText: "Current",
-        icon: "fas fa-university",
-        order: 1
-      },
-      {
-        degree: "Diploma - Computer Science Engineering",
-        institution: "MMIT Sant Kabir Nagar",
-        dateRange: "2021 - 2024",
-        location: "Sant Kabir Nagar, UP",
-        description: "Completed diploma in Computer Science, building a strong foundation in programming, networking, and web technologies.",
-        badgeText: "76.79%",
-        icon: "fas fa-laptop-code",
-        order: 2
-      },
-      {
-        degree: "Secondary Education (UP Board)",
-        institution: "K S S I C Baridiha, Sant Kabir Nagar",
-        dateRange: "Completed",
-        location: "Sant Kabir Nagar, UP",
-        description: "Successfully completed secondary education with distinction under UP Board.",
-        badgeText: "87%",
-        icon: "fas fa-school",
-        order: 3
-      }
-    ]);
-    console.log('Seeded Education');
+  let created = 0;
+  let skipped = 0;
 
-    await Certification.deleteMany({});
-    await Certification.create([
-      {
-        title: "Infosys Springboard",
-        issuer: "Infosys",
-        topics: ["Java Programming", "Java Tools", "Cyber Security Overview", "Wireshark"],
-        badgeText: "Verified",
-        icon: "fas fa-certificate",
-        order: 1
-      },
-      {
-        title: "Summer Training",
-        issuer: "Techpile Technology Pvt Ltd",
-        date: "Jul 2023 - Sep 2023",
-        description: "Hands-on industry training focusing on real-world web development skills and professional practices.",
-        topics: [],
-        badgeText: "Trained",
-        icon: "fas fa-briefcase",
-        order: 2
-      }
-    ]);
-    console.log('Seeded Certifications');
-
-    process.exit(0);
-  } catch (err) {
-    console.error(err);
-    process.exit(1);
+  for (const item of DEFAULT_LINKS) {
+    const existing = await SocialLink.findOne({ platform: item.platform });
+    if (existing) {
+      console.log(`⏭️   Skipped (already exists): ${item.platform}`);
+      skipped++;
+    } else {
+      await SocialLink.create(item);
+      console.log(`✅  Created: ${item.platform} → ${item.url}`);
+      created++;
+    }
   }
+
+  console.log(`\n🌱  Seed complete. Created: ${created}, Skipped: ${skipped}`);
+  process.exit(0);
 }
 
-seed();
+seed().catch((err) => {
+  console.error('❌  Seed failed:', err.message);
+  process.exit(1);
+});
