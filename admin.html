@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portfolio Admin Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/assets/css/admin.css">
+</head>
+<body>
+
+  <!-- Login Modal Overlay -->
+  <div id="login-modal" class="modal-overlay">
+    <div class="modal-card glass">
+      <div class="modal-header">
+        <h2><i class="fas fa-lock"></i> Admin Access</h2>
+      </div>
+      <div class="modal-body">
+        <p>Please enter your Admin Key to access the dashboard.</p>
+        <input type="password" id="admin-key-input" placeholder="x-admin-key" />
+        <p id="login-error" class="error-text hidden"></p>
+        <button id="login-btn" class="btn btn-primary">Authenticate</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Dashboard Layout -->
+  <div class="dashboard-layout hidden" id="dashboard">
+    
+    <!-- Sidebar -->
+    <aside class="sidebar glass">
+      <div class="sidebar-header">
+        <i class="fas fa-terminal logo-icon"></i>
+        <span>Admin Panel</span>
+      </div>
+      <nav class="sidebar-nav">
+        <button class="nav-btn active" data-tab="messages"><i class="fas fa-envelope"></i> Messages</button>
+        <button class="nav-btn" data-tab="resume"><i class="fas fa-file-pdf"></i> Resume</button>
+        <button class="nav-btn" data-tab="social"><i class="fas fa-share-nodes"></i> Social Links</button>
+        <button class="nav-btn" data-tab="projects"><i class="fas fa-rocket"></i> Projects</button>
+        <button class="nav-btn" data-tab="education"><i class="fas fa-university"></i> Education</button>
+        <button class="nav-btn" data-tab="certifications"><i class="fas fa-certificate"></i> Certifications</button>
+        <button class="nav-btn" data-tab="skills"><i class="fas fa-code"></i> Skills</button>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="logout-btn" class="nav-btn logout"><i class="fas fa-sign-out-alt"></i> Logout</button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      
+      <!-- Messages View -->
+      <section id="view-messages" class="view-section active">
+        <header class="section-header">
+          <h2>Contact Messages</h2>
+          <button class="btn btn-icon" id="refresh-messages"><i class="fas fa-sync"></i></button>
+        </header>
+        <div class="card glass">
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Name / Email</th>
+                  <th>Subject</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="messages-tbody">
+                <!-- Data goes here -->
+              </tbody>
+            </table>
+          </div>
+          <div id="messages-empty" class="empty-state hidden">No messages found.</div>
+        </div>
+      </section>
+
+      <!-- Resume View -->
+      <section id="view-resume" class="view-section hidden">
+        <header class="section-header">
+          <h2>Manage Resume</h2>
+        </header>
+        <div class="grid-2">
+          <div class="card glass upload-card">
+            <h3>Upload New PDF</h3>
+            <p class="text-muted">This will replace the active resume.</p>
+            <div class="upload-area" id="drop-zone">
+              <input type="file" id="resume-upload" accept="application/pdf" hidden />
+              <div class="upload-content">
+                <i class="fas fa-file-arrow-up upload-icon"></i>
+                <p>Click to select or drag PDF here</p>
+                <div id="file-name-display" class="file-name-display"></div>
+              </div>
+            </div>
+            <button id="upload-resume-btn" class="btn btn-primary" disabled><i class="fas fa-upload"></i> Upload</button>
+          </div>
+          
+          <div class="card glass info-card" id="current-resume-card">
+            <h3>Current Active Resume</h3>
+            <div class="info-content" id="resume-info-container">
+              <p>Loading...</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Socials View -->
+      <section id="view-social" class="view-section hidden">
+        <header class="section-header">
+          <h2>Social Links</h2>
+          <button class="btn btn-primary" id="add-social-btn"><i class="fas fa-plus"></i> Add Link</button>
+        </header>
+
+        <div class="card glass hidden mb-4" id="social-form-card">
+          <h3 id="social-form-title">Add Social Link</h3>
+          <form id="social-form" onsubmit="return false;">
+            <div class="form-grid">
+              <input type="hidden" id="social-id" />
+              <div class="input-group">
+                <label>Platform *</label>
+                <input type="text" id="social-platform" required />
+              </div>
+              <div class="input-group">
+                <label>URL *</label>
+                <input type="url" id="social-url" required />
+              </div>
+              <div class="input-group">
+                <label>Label *</label>
+                <input type="text" id="social-label" required />
+              </div>
+              <div class="input-group">
+                <label>Username</label>
+                <input type="text" id="social-username" />
+              </div>
+              <div class="input-group">
+                <label>Icon Class</label>
+                <input type="text" id="social-icon" placeholder="fab fa-github" />
+              </div>
+              <div class="input-group">
+                <label>Order</label>
+                <input type="number" id="social-order" value="99" min="0" />
+              </div>
+            </div>
+            <div class="form-actions mt-4">
+              <button class="btn btn-secondary" id="cancel-social-btn">Cancel</button>
+              <button class="btn btn-primary" id="save-social-btn" type="submit">Save Link</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card glass">
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th width="80">Order</th>
+                  <th>Icon</th>
+                  <th>Platform</th>
+                  <th>URL</th>
+                  <th width="100">Active</th>
+                  <th width="140">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="socials-tbody">
+                <!-- Data goes here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Projects View -->
+      <section id="view-projects" class="view-section hidden">
+        <header class="section-header">
+          <h2>Projects</h2>
+          <button class="btn btn-primary" id="add-project-btn"><i class="fas fa-plus"></i> Add Project</button>
+        </header>
+        <div class="card glass hidden mb-4" id="project-form-card">
+          <h3 id="project-form-title">Add Project</h3>
+          <form id="project-form" onsubmit="return false;">
+            <div class="form-grid">
+              <input type="hidden" id="project-id" />
+              <div class="input-group"><label>Title *</label><input type="text" id="project-title" required /></div>
+              <div class="input-group"><label>Description *</label><input type="text" id="project-desc" required /></div>
+              <div class="input-group"><label>Features (comma separated)</label><input type="text" id="project-features" /></div>
+              <div class="input-group"><label>Tech Stack (comma separated)</label><input type="text" id="project-tech" /></div>
+              <div class="input-group"><label>GitHub URL</label><input type="url" id="project-github" /></div>
+              <div class="input-group"><label>Live URL</label><input type="url" id="project-live" /></div>
+              <div class="input-group"><label>Icon Class</label><input type="text" id="project-icon" placeholder="fas fa-rocket" /></div>
+              <div class="input-group"><label>Order</label><input type="number" id="project-order" value="99" min="0" /></div>
+            </div>
+            <div class="form-actions mt-4">
+              <button class="btn btn-secondary" id="cancel-project-btn">Cancel</button>
+              <button class="btn btn-primary" type="submit">Save</button>
+            </div>
+          </form>
+        </div>
+        <div class="card glass"><div class="table-responsive"><table class="data-table">
+          <thead><tr><th>Ord</th><th>Title</th><th>Demo</th><th>Active</th><th>Actions</th></tr></thead>
+          <tbody id="projects-tbody"></tbody>
+        </table></div></div>
+      </section>
+
+      <!-- Education View -->
+      <section id="view-education" class="view-section hidden">
+        <header class="section-header">
+          <h2>Education</h2>
+          <button class="btn btn-primary" id="add-education-btn"><i class="fas fa-plus"></i> Add Education</button>
+        </header>
+        <div class="card glass hidden mb-4" id="education-form-card">
+          <h3 id="education-form-title">Add Education</h3>
+          <form id="education-form" onsubmit="return false;">
+            <div class="form-grid">
+              <input type="hidden" id="education-id" />
+              <div class="input-group"><label>Degree / Course *</label><input type="text" id="education-degree" required /></div>
+              <div class="input-group"><label>Institution *</label><input type="text" id="education-inst" required /></div>
+              <div class="input-group"><label>Date Range *</label><input type="text" id="education-date" placeholder="2024 - 2027" required /></div>
+              <div class="input-group"><label>Location</label><input type="text" id="education-loc" placeholder="Lucknow, India" /></div>
+              <div class="input-group"><label>Description</label><input type="text" id="education-desc" /></div>
+              <div class="input-group"><label>Badge Text</label><input type="text" id="education-badge" placeholder="Current" /></div>
+              <div class="input-group"><label>Icon Class</label><input type="text" id="education-icon" placeholder="fas fa-university" /></div>
+              <div class="input-group"><label>Order</label><input type="number" id="education-order" value="99" min="0" /></div>
+            </div>
+            <div class="form-actions mt-4">
+              <button class="btn btn-secondary" id="cancel-education-btn">Cancel</button>
+              <button class="btn btn-primary" type="submit">Save</button>
+            </div>
+          </form>
+        </div>
+        <div class="card glass"><div class="table-responsive"><table class="data-table">
+          <thead><tr><th>Ord</th><th>Degree</th><th>Institution</th><th>Active</th><th>Actions</th></tr></thead>
+          <tbody id="education-tbody"></tbody>
+        </table></div></div>
+      </section>
+
+      <!-- Certifications View -->
+      <section id="view-certifications" class="view-section hidden">
+        <header class="section-header">
+          <h2>Certifications</h2>
+          <button class="btn btn-primary" id="add-cert-btn"><i class="fas fa-plus"></i> Add Certification</button>
+        </header>
+        <div class="card glass hidden mb-4" id="cert-form-card">
+          <h3 id="cert-form-title">Add Certification</h3>
+          <form id="cert-form" onsubmit="return false;">
+            <div class="form-grid">
+              <input type="hidden" id="cert-id" />
+              <div class="input-group"><label>Title *</label><input type="text" id="cert-title" required /></div>
+              <div class="input-group"><label>Issuer *</label><input type="text" id="cert-issuer" required /></div>
+              <div class="input-group"><label>Date</label><input type="text" id="cert-date" /></div>
+              <div class="input-group"><label>Topics (comma separated)</label><input type="text" id="cert-topics" /></div>
+              <div class="input-group"><label>Description</label><input type="text" id="cert-desc" /></div>
+              <div class="input-group"><label>Badge Text</label><input type="text" id="cert-badge" placeholder="Verified" /></div>
+              <div class="input-group"><label>Icon Class</label><input type="text" id="cert-icon" placeholder="fas fa-certificate" /></div>
+              <div class="input-group"><label>Order</label><input type="number" id="cert-order" value="99" min="0" /></div>
+            </div>
+            <div class="form-actions mt-4">
+              <button class="btn btn-secondary" id="cancel-cert-btn">Cancel</button>
+              <button class="btn btn-primary" type="submit">Save</button>
+            </div>
+          </form>
+        </div>
+        <div class="card glass"><div class="table-responsive"><table class="data-table">
+          <thead><tr><th>Ord</th><th>Title</th><th>Issuer</th><th>Active</th><th>Actions</th></tr></thead>
+          <tbody id="certs-tbody"></tbody>
+        </table></div></div>
+      </section>
+
+      <!-- Skills View -->
+      <section id="view-skills" class="view-section hidden">
+        <header class="section-header">
+          <h2>Skills & Technologies</h2>
+          <button class="btn btn-primary" id="add-skill-btn"><i class="fas fa-plus"></i> Add Skill</button>
+        </header>
+        <div class="card glass hidden mb-4" id="skill-form-card">
+          <h3 id="skill-form-title">Add Skill</h3>
+          <form id="skill-form" onsubmit="return false;">
+            <div class="form-grid">
+              <input type="hidden" id="skill-id" />
+              <div class="input-group"><label>Category Name *</label><input type="text" id="skill-category" placeholder="Programming" required /></div>
+              <div class="input-group"><label>Category Icon</label><input type="text" id="skill-categoryIcon" placeholder="fas fa-code" /></div>
+              <div class="input-group" style="display:flex;align-items:center;gap:0.5rem;padding-top:1.5rem;"><input type="checkbox" id="skill-isTag" style="width:16px;height:16px;"/><label>Is Tag (No % Bar)</label></div>
+              <div class="input-group"><label>Skill Name *</label><input type="text" id="skill-name" required /></div>
+              <div class="input-group"><label>Skill Icon</label><input type="text" id="skill-icon" placeholder="devicon-javascript-plain colored" /></div>
+              <div class="input-group"><label>Percentage (0-100)</label><input type="number" id="skill-percentage" min="0" max="100" /></div>
+              <div class="input-group"><label>Bar Color</label><input type="text" id="skill-color" placeholder="#f0db4f" /></div>
+              <div class="input-group"><label>Order</label><input type="number" id="skill-order" value="99" min="0" /></div>
+            </div>
+            <div class="form-actions mt-4">
+              <button class="btn btn-secondary" id="cancel-skill-btn">Cancel</button>
+              <button class="btn btn-primary" type="submit">Save</button>
+            </div>
+          </form>
+        </div>
+        <div class="card glass"><div class="table-responsive"><table class="data-table">
+          <thead><tr><th>Cat.</th><th>Ord</th><th>Name</th><th>Values</th><th>Active</th><th>Actions</th></tr></thead>
+          <tbody id="skills-tbody"></tbody>
+        </table></div></div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <script src="/assets/js/admin.js"></script>
+</body>
+</html>
